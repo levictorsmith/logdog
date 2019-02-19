@@ -1,8 +1,15 @@
 *.iml
 .gradle
-/local.properties
+local.properties
 .idea
 .DS_Store
 /build
 /captures
 .externalNativeBuild
+
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties

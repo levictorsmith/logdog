@@ -70,9 +70,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             listOf(it)
         }
 
-        val example = POJO("foobar", 1234, 56789, 123.456f)
+        // Log an object using JSON format
         LogDog.json(LOG_TAG, "{\"foo\":\"blah\",\"bar\":123, \"baz\":[1,2,3,4,5,6,7]}", Log.DEBUG)
+
+        // Gson Serializer/TypeAdapter friendly
+        val example = POJO("foobar", 1234, 56789, 123.456f)
         LogDog.json(LOG_TAG, example, POJO.serializer, Log.WARN)
+
+        // With Auto-tags
+        LogDog.v("This is an auto-tag message.")
     }
 
     override fun onClick(v: View) {

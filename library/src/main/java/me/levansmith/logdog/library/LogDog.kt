@@ -22,11 +22,24 @@ object LogDog {
 
     private val config = LogDogConfig
 
+    // For convenience
+    const val VERBOSE = Log.VERBOSE
+    const val DEBUG = Log.DEBUG
+    const val INFO = Log.INFO
+    const val WARN = Log.WARN
+    const val ERROR = Log.ERROR
+    const val ASSERT = Log.ASSERT
+
     // Verbose
     fun v(tag: String, msg: String): Int = Log.v(tag, decorateMessage(msg))
     fun v(tag: String, format: String, vararg args: Any): Int = v(tag, format(format, *args))
     fun v(tag: String, msg: String, tr: Throwable): Int = Log.v(tag, decorateMessage(msg), tr)
     fun v(tag: String, format: String, tr: Throwable, vararg args: Any): Int = v(tag, format(format, *args), tr)
+
+    fun v(msg: String): Int = Log.v(getTag(""), decorateMessage(msg))
+    fun v(format: String, vararg args: Any): Int = v(getTag(""), format(format, *args))
+    fun v(msg: String, tr: Throwable): Int = Log.v(getTag(""), decorateMessage(msg), tr)
+    fun v(format: String, tr: Throwable, vararg args: Any): Int = v(getTag(""), format(format, *args), tr)
 
     // Debug
     fun d(tag: String, msg: String): Int = Log.d(tag, decorateMessage(msg))
@@ -34,11 +47,21 @@ object LogDog {
     fun d(tag: String, msg: String, tr: Throwable): Int = Log.d(tag, decorateMessage(msg), tr)
     fun d(tag: String, format: String, tr: Throwable, vararg args: Any): Int = d(tag, format(format, *args), tr)
 
+    fun d(msg: String): Int = Log.d(getTag(""), decorateMessage(msg))
+    fun d(format: String, vararg args: Any): Int = d(getTag(""), format(format, *args))
+    fun d(msg: String, tr: Throwable): Int = Log.d(getTag(""), decorateMessage(msg), tr)
+    fun d(format: String, tr: Throwable, vararg args: Any): Int = d(getTag(""), format(format, *args), tr)
+
     // Info
     fun i(tag: String, msg: String): Int = Log.i(tag, decorateMessage(msg))
     fun i(tag: String, format: String, vararg args: Any): Int = i(tag, format(format, *args))
     fun i(tag: String, msg: String, tr: Throwable): Int = Log.i(tag, decorateMessage(msg), tr)
     fun i(tag: String, format: String, tr: Throwable, vararg args: Any): Int = i(tag, format(format, *args), tr)
+
+    fun i(msg: String): Int = Log.i(getTag(""), decorateMessage(msg))
+    fun i(format: String, vararg args: Any): Int = i(getTag(""), format(format, *args))
+    fun i(msg: String, tr: Throwable): Int = Log.i(getTag(""), decorateMessage(msg), tr)
+    fun i(format: String, tr: Throwable, vararg args: Any): Int = i(getTag(""), format(format, *args), tr)
 
     // Warn
     fun w(tag: String, msg: String): Int = Log.w(tag, decorateMessage(msg))
@@ -46,11 +69,21 @@ object LogDog {
     fun w(tag: String, msg: String, tr: Throwable): Int = Log.w(tag, decorateMessage(msg), tr)
     fun w(tag: String, format: String, tr: Throwable, vararg args: Any): Int = w(tag, format(format, *args), tr)
 
+    fun w(msg: String): Int = Log.w(getTag(""), decorateMessage(msg))
+    fun w(format: String, vararg args: Any): Int = w(getTag(""), format(format, *args))
+    fun w(msg: String, tr: Throwable): Int = Log.w(getTag(""), decorateMessage(msg), tr)
+    fun w(format: String, tr: Throwable, vararg args: Any): Int = w(getTag(""), format(format, *args), tr)
+
     // Error
     fun e(tag: String, msg: String): Int = Log.e(tag, decorateMessage(msg))
     fun e(tag: String, format: String, vararg args: Any): Int = e(tag, format(format, *args))
     fun e(tag: String, msg: String, tr: Throwable): Int = Log.e(tag, decorateMessage(msg), tr)
     fun e(tag: String, format: String, tr: Throwable, vararg args: Any): Int = e(tag, format(format, *args), tr)
+
+    fun e(msg: String): Int = Log.e(getTag(""), decorateMessage(msg))
+    fun e(format: String, vararg args: Any): Int = e(getTag(""), format(format, *args))
+    fun e(msg: String, tr: Throwable): Int = Log.e(getTag(""), decorateMessage(msg), tr)
+    fun e(format: String, tr: Throwable, vararg args: Any): Int = e(getTag(""), format(format, *args), tr)
 
     // What-a-terrible-failure
     fun wtf(tag: String, msg: String): Int = Log.wtf(tag, decorateMessage(msg))
@@ -58,9 +91,28 @@ object LogDog {
     fun wtf(tag: String, msg: String, tr: Throwable): Int = Log.wtf(tag, decorateMessage(msg), tr)
     fun wtf(tag: String, format: String, tr: Throwable, vararg args: Any): Int = wtf(tag, format(format, *args), tr)
 
+    fun wtf(msg: String): Int = Log.wtf(getTag(""), decorateMessage(msg))
+    fun wtf(format: String, vararg args: Any): Int = wtf(getTag(""), format(format, *args))
+    fun wtf(msg: String, tr: Throwable): Int = Log.wtf(getTag(""), decorateMessage(msg), tr)
+    fun wtf(format: String, tr: Throwable, vararg args: Any): Int = wtf(getTag(""), format(format, *args), tr)
+
+    private fun getTag(tag: String): String {
+        return when {
+            tag.isNotBlank() -> tag
+            LogDogConfig.autoTag -> getAutoTag()
+            else ->  getAutoTag()
+        }
+    }
+
+    private fun getAutoTag(): String {
+        // Walk up the stack trace until the callee is found, then get its classname
+        val index = Thread.currentThread().stackTrace.indexOfLast { it.className.contains("me.levansmith.logdog.library.LogDog") } + 1
+        return Thread.currentThread().stackTrace[index].className
+    }
+
     private fun format(format: String, vararg args: Any): String = String.format(Locale.getDefault(), format, *args)
 
-    private fun decorateMessage(msg: String): String = logThread(msg)
+    private fun decorateMessage(msg: String): String = if (LogDogConfig.showThreadInfo) logThread(msg) else msg
 
     private fun logThread(msg: String): String = format("[thread=%s] %s", Thread.currentThread().name, msg)
 
@@ -98,6 +150,10 @@ object LogDog {
             counters[label] = counters[label]!!.inc()
             counters[label]!!.toString()
         }
+    }
+
+    fun count(label: String = DEFAULT_COUNT_LABEL, logLevel: Int = Log.VERBOSE) {
+        count(getTag(""), label, logLevel)
     }
 
     fun countReset(label: String = DEFAULT_COUNT_LABEL) {
@@ -268,6 +324,10 @@ object LogDog {
             .serializeSpecialFloatingPointValues()
             .create()
         json(tag, gson.toJson(obj), logLevel)
+    }
+
+    fun xml(tag: String, xml: String, logLevel: Int = Log.VERBOSE) {
+
     }
 
     private fun splitByLine(content: String): List<String> = content.split(System.getProperty("line.separator")!!)

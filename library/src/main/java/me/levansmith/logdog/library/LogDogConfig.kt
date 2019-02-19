@@ -5,23 +5,26 @@ object LogDogConfig {
     var showThreadInfo = false
     var boxPadding = 2
     var indentation = 2
+    var autoTag = true
 
-    class Modifier {
-        fun tag(tag: String): Modifier {
-            LogDogConfig.tag = tag
-            return this
-        }
-        fun showThreadInfo(flag: Boolean): Modifier {
-            LogDogConfig.showThreadInfo = flag
-            return this
-        }
-        fun boxPadding(padding: Int): Modifier {
-            LogDogConfig.boxPadding = padding
-            return this
-        }
-        fun indentation(indentation: Int): Modifier {
-            LogDogConfig.indentation = indentation
-            return this
-        }
+    fun tag(tag: String): LogDogConfig {
+        this.tag = tag
+        return this
+    }
+    fun showThreadInfo(flag: Boolean): LogDogConfig {
+        this.showThreadInfo = flag
+        return this
+    }
+    fun boxPadding(padding: Int): LogDogConfig {
+        this.boxPadding = padding
+        return this
+    }
+    fun indentation(indentation: Int): LogDogConfig {
+        this.indentation = indentation
+        return this
+    }
+    fun autoTag(flag: Boolean): LogDogConfig {
+        this.autoTag = flag
+        return this
     }
 }

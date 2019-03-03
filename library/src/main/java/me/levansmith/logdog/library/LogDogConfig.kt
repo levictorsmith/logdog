@@ -1,11 +1,18 @@
 package me.levansmith.logdog.library
 
+import android.util.Log
+
 object LogDogConfig {
     var tag: String = ""
-    var showThreadInfo = false
-    var boxPadding = 2
-    var indentation = 2
-    var autoTag = true
+    var showThreadInfo: Boolean = false
+    var boxPadding: Int = 2
+    var indentation: Int = 2
+    var autoTag: Boolean = true
+    var disableLogs: Boolean = false
+    var logThreshold: Int = Log.VERBOSE
+        set(value) {
+            field = if (value >= Log.VERBOSE && value <= Log.ASSERT) value else throw Exception("Inappropriate log level")
+        }
 
     fun tag(tag: String): LogDogConfig {
         this.tag = tag
@@ -25,6 +32,10 @@ object LogDogConfig {
     }
     fun autoTag(flag: Boolean): LogDogConfig {
         this.autoTag = flag
+        return this
+    }
+    fun disableLogs(flag: Boolean): LogDogConfig {
+        this.disableLogs = flag
         return this
     }
 }

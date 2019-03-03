@@ -7,6 +7,7 @@ import android.view.View
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
 import me.levansmith.logdog.library.LogDog
+import me.levansmith.logdog.library.LogDogConfig
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
@@ -14,6 +15,113 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object {
         val LOG_TAG = LogDog.Tag.create(MainActivity::class.java)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        // Keeping time
+        LogDog.timeStart(LOG_TAG, "sample_timer")
+        Thread.sleep(3000L)
+        LogDog.timeEnd("sample_timer")
+
+        // Keeping count
+        for (i in 1..10) {
+            LogDog.count(LOG_TAG, "sample_counter")
+        }
+
+        /*
+         Logging Levels
+         */
+
+        LogDog.v(LOG_TAG, "Log Level: VERBOSE")
+        LogDog.d(LOG_TAG, "Log Level: DEBUG")
+        LogDog.i(LOG_TAG, "Log Level: INFO")
+        LogDog.w(LOG_TAG, "Log Level: WARN")
+        LogDog.e(LOG_TAG, "Log Level: ERROR")
+        LogDog.wtf(LOG_TAG, "Log Level: ASSERT")
+
+        // This is a generic log which defaults to VERBOSE level. Kinda useless IMO
+        LogDog.log(LOG_TAG, "This will default to VERBOSE")
+        // You can prepend the log level you want to log in
+        LogDog.e.log("This will log an ERROR message")
+        // If you try to configure the logging level, it will use the level mentioned last
+        LogDog.v.d.i.w.e.wtf.d(LOG_TAG, "This will be a DEBUG message, since it takes the highest precedence, being the last")
+        LogDog.wtf.w.log(LOG_TAG, "This will be a WARN level message")
+        LogDog.e
+        LogDog.log(LOG_TAG, "This will log (albeit oddly) at an ERROR level")
+
+        /*
+         Outputting data
+         */
+
+        // Output a table of data, given the "interpreter" for what goes in which column
+        val data = createObjects()
+        LogDog.table(LOG_TAG, data, listOf("Foo", "Bar", "Baz", "Quuuuuuuuuuuuuuuuuuuux")) {
+            listOf(it.foo, it.bar.toString(), it.baz.toString(), it.qux.toString())
+        }
+
+        // Just one column without indexes
+        LogDog.e.table(LOG_TAG, data.map { it.foo }, listOf("Foo"), false) {
+            listOf(it)
+        }
+
+        // Log an object using JSON format
+        LogDog.d.json(LOG_TAG, "{\"foo\":\"blah\",\"bar\":123, \"baz\":[1,2,3,4,5,6,7]}")
+
+        // Gson Serializer/TypeAdapter friendly
+        val example = POJO("foobar", 1234, 56789, 123.456f)
+        LogDog.w.json(LOG_TAG, example, POJO.serializer)
+
+        // Log an object using XML format
+        LogDog.d.xml(LOG_TAG, "<parent><child>I am a child</child><child with-attribute=\"hey there\">This has content</child></parent>")
+
+        /*
+         Cool Features
+         */
+
+        // With Auto-tags. All methods have the option to use auto-tags!
+        LogDog.v("This is an auto-tag message.")
+
+        // Disabling messages
+        LogDog.hide.log("This is a hidden message, which you'll never see")
+
+        LogDogConfig.disableLogs = true
+        // All logs after this will be disabled
+        LogDog.d("You'll never see me!! I'm invisible Barney!")
+        LogDog.force.d("This defies all preventions and logs anyway.")
+        LogDog.d("You'll never see me etiher!!")
+        LogDog.hide.log("Hidden messages are hidden, just as long cat is long")
+        LogDogConfig.disableLogs = false
+        LogDog.hide.log("This is a hidden message, despite logs being enabled again")
+        // Force always takes precedence and will always output the log
+        LogDog.force.hide.hide.hide.log("I'm sorry Dave, I'm afraid I can't do that.")
+
+        LogDogConfig.logThreshold = Log.ERROR
+        // All logs below the specified threshold will be hidden
+        LogDog.v("This will be hidden")
+        LogDog.d("This too")
+        LogDog.i("This too")
+        LogDog.w("This too")
+        LogDog.e("However, this one will be displayed")
+        LogDog.wtf("And this one too")
+        LogDogConfig.logThreshold = Log.VERBOSE
+
+        // If you want to auto-send a tag, message and/or arguments to your preferred analytics manager, this option will let you
+        // TODO: Not implemented yet
+//        LogDog.send.d("This message will send (if possible) the given data to the configured analytics service.")
+    }
+
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.count -> {
+                LogDog.d.count(LOG_TAG, "sample_counter")
+            }
+            R.id.count_reset -> {
+                LogDog.d.countReset(LOG_TAG, "sample_counter")
+            }
+        }
     }
 
     data class POJO(
@@ -34,62 +142,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        LogDog.d(LOG_TAG, "Debug message")
-        LogDog.timeStart(LOG_TAG, "sample_timer", Log.DEBUG)
-        Thread.sleep(3000L)
-        LogDog.timeEnd("sample_timer")
-        for (i in 1..10) {
-            LogDog.count(LOG_TAG, "sample_counter", Log.DEBUG)
-        }
-
-        LogDog.v(LOG_TAG, "Log Level: VERBOSE")
-        LogDog.d(LOG_TAG, "Log Level: DEBUG")
-        LogDog.i(LOG_TAG, "Log Level: INFO")
-        LogDog.w(LOG_TAG, "Log Level: WARN")
-        LogDog.e(LOG_TAG, "Log Level: ERROR")
-        LogDog.wtf(LOG_TAG, "Log Level: ASSERT")
-
-        val data = mutableListOf<POJO>()
-        for (i in 1..101) {
-            data.add(
-                POJO(
-                    Random.nextBytes(Random.nextInt(20)).map { ((it % 94).absoluteValue + 33).toByte() }.toByteArray().toString(
-                        Charsets.US_ASCII
-                    ), Random.nextInt(), Random.nextInt(), Random.nextFloat()
-                )
-            )
-        }
-        LogDog.table(LOG_TAG, data, listOf("Foo", "Bar", "Baz", "Quuuuuuuuuuuuuuuuuuuux")) {
-            listOf(it.foo, it.bar.toString(), it.baz.toString(), it.qux.toString())
-        }
-
-        LogDog.table(LOG_TAG, data.map { it.foo }, listOf("Foo"), false, Log.ERROR) {
-            listOf(it)
-        }
-
-        // Log an object using JSON format
-        LogDog.json(LOG_TAG, "{\"foo\":\"blah\",\"bar\":123, \"baz\":[1,2,3,4,5,6,7]}", Log.DEBUG)
-
-        // Gson Serializer/TypeAdapter friendly
-        val example = POJO("foobar", 1234, 56789, 123.456f)
-        LogDog.json(LOG_TAG, example, POJO.serializer, Log.WARN)
-
-        // With Auto-tags
-        LogDog.v("This is an auto-tag message.")
-    }
-
-    override fun onClick(v: View) {
-        when (v.id) {
-            R.id.count -> {
-                LogDog.count(LOG_TAG, "sample_counter", Log.DEBUG)
-            }
-            R.id.count_reset -> {
-                LogDog.countReset("sample_counter")
-            }
-        }
+    private fun createObjects(): List<POJO> = (1..101).map {
+        POJO(
+            Random.nextBytes(Random.nextInt(20)).map { ((it % 94).absoluteValue + 33).toByte() }.toByteArray().toString(
+                Charsets.US_ASCII
+            ), Random.nextInt(), Random.nextInt(), Random.nextFloat()
+        )
     }
 
 }

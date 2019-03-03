@@ -38,4 +38,8 @@ object LogDogConfig {
         this.disableLogs = flag
         return this
     }
+    fun logThreshold(logLevel: Int): LogDogConfig {
+        this.logThreshold = logLevel
+        return this
+    }
 }

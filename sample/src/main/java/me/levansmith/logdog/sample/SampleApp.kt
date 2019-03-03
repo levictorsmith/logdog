@@ -1,6 +1,7 @@
 package me.levansmith.logdog.sample
 
 import android.app.Application
+import android.util.Log
 import me.levansmith.logdog.library.LogDogConfig
 
 class SampleApp() : Application() {
@@ -15,6 +16,7 @@ class SampleApp() : Application() {
 //        LogDogConfig.indentation = 2
 //        LogDogConfig.autoTag = true
 //        LogDogConfig.disableLogs = !BuildConfig.DEBUG
+//        LogDogConfig.logThreshold = Log.VERBOSE
 
         // With apply
 //        LogDogConfig.apply {
@@ -24,6 +26,7 @@ class SampleApp() : Application() {
 //            indentation = 2
 //            autoTag = true
 //            disableLogs = !BuildConfig.DEBUG
+//            logThreshold = Log.VERBOSE
 //        }
 
         // With direct methods
@@ -34,5 +37,6 @@ class SampleApp() : Application() {
             .indentation(2)
             .autoTag(true)
             .disableLogs(!BuildConfig.DEBUG)
+            .logThreshold(Log.VERBOSE)
     }
 }

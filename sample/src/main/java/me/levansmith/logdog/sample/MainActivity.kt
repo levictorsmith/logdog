@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
+import me.levansmith.logdog.library.AnalyticsEvent
 import me.levansmith.logdog.library.LogDog
 import me.levansmith.logdog.library.LogDogConfig
 import kotlin.math.absoluteValue
@@ -50,7 +52,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         LogDog.v.d.i.w.e.wtf.d(LOG_TAG, "This will be a DEBUG message, since it takes the highest precedence, being the last")
         LogDog.wtf.w.log(LOG_TAG, "This will be a WARN level message")
         LogDog.e
-        LogDog.log(LOG_TAG, "This will log (albeit oddly) at an ERROR level")
+        LogDog.log(LOG_TAG, "This will log at a VERBOSE level because the previous line has no effect on the current line")
 
         /*
          Outputting data
@@ -104,19 +106,37 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         LogDog.d("This too")
         LogDog.i("This too")
         LogDog.w("This too")
+        LogDog.v.log("These will also be hidden")
+        LogDog.d.log("These will also be hidden")
+        LogDog.i.log("These will also be hidden")
+        LogDog.w.log("These will also be hidden")
         LogDog.e("However, this one will be displayed")
         LogDog.wtf("And this one too")
         LogDogConfig.logThreshold = Log.VERBOSE
 
         // If you want to auto-send a tag, message and/or arguments to your preferred analytics manager, this option will let you
-        // TODO: Not implemented yet
-//        LogDog.send.d("This message will send (if possible) the given data to the configured analytics service.")
+        LogDog.send.d("This message will send (if possible) the given data to the configured analytics service.")
+        val event = SampleEvent("John Jacob", "Jingleheimerschmidt", 72, 3.8f)
+        LogDog.send.d(event)
+
+        /*
+         Although combining multiple log statements are possible and act as suspected, it is bad practice
+         and will probably yield unexpected results.
+         */
+        LogDog.hide.e(LogDog.w("This is bad practice, but still possible").toString())
+        LogDog.hide.e(LogDog.force.w("This is bad practice, but still possible").toString())
+        LogDog.e(LogDog.hide.w("This is bad practice, but still possible").toString())
     }
 
     override fun onClick(v: View) {
         when (v.id) {
             R.id.count -> {
                 LogDog.d.count(LOG_TAG, "sample_counter")
+                // Send a button click event
+                val event = CountButtonClickEvent(
+                    LogDog.getCount("sample_counter")
+                )
+                LogDog.send.d(event)
             }
             R.id.count_reset -> {
                 LogDog.d.countReset(LOG_TAG, "sample_counter")
@@ -139,6 +159,31 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     addProperty("qux", src.qux)
                 }
             }
+        }
+    }
+
+    data class SampleEvent(
+        val firstName: String,
+        val lastName: String,
+        val age: Int,
+        val GPA: Float
+    ) : AnalyticsEvent(FirebaseAnalytics.Event.SELECT_CONTENT) {
+
+        // If you want to include standardized keys (like in Firebase), just provide the keys in the getFields function
+        override fun getFields() = mutableMapOf<String, String>().apply {
+            put(FirebaseAnalytics.Param.ITEM_NAME, "Sample Event")
+            put(FirebaseAnalytics.Param.ITEM_ID, "sample_event_id")
+            put("first_name", firstName)
+            put("last_name", lastName)
+            put("age", age.toString())
+            put("GPA", GPA.toString())
+        }
+    }
+
+    data class CountButtonClickEvent(val count: Long) : AnalyticsEvent("increment_counter") {
+
+        override fun getFields() = mutableMapOf<String,String>().apply {
+            put("count", count.toString())
         }
     }
 

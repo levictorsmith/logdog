@@ -13,6 +13,7 @@ object LogDogConfig {
         set(value) {
             field = if (value >= Log.VERBOSE && value <= Log.ASSERT) value else throw Exception("Inappropriate log level")
         }
+    var analyticsHandler: (event: AnalyticsEvent) -> Unit = {}
 
     fun tag(tag: String): LogDogConfig {
         this.tag = tag
@@ -40,6 +41,10 @@ object LogDogConfig {
     }
     fun logThreshold(logLevel: Int): LogDogConfig {
         this.logThreshold = logLevel
+        return this
+    }
+    fun analyticsHandler(block: (AnalyticsEvent) -> Unit): LogDogConfig {
+        this.analyticsHandler = block
         return this
     }
 }

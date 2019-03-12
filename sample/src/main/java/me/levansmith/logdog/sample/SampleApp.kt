@@ -2,6 +2,7 @@ package me.levansmith.logdog.sample
 
 import android.app.Application
 import android.util.Log
+import com.google.firebase.analytics.FirebaseAnalytics
 import me.levansmith.logdog.library.LogDogConfig
 
 class SampleApp() : Application() {
@@ -17,6 +18,9 @@ class SampleApp() : Application() {
 //        LogDogConfig.autoTag = true
 //        LogDogConfig.disableLogs = !BuildConfig.DEBUG
 //        LogDogConfig.logThreshold = Log.VERBOSE
+//        LogDogConfig.analyticsHandler = {
+//            FirebaseAnalytics.getInstance(this).logEvent(it.eventName, it.toBundle())
+//        }
 
         // With apply
 //        LogDogConfig.apply {
@@ -27,6 +31,9 @@ class SampleApp() : Application() {
 //            autoTag = true
 //            disableLogs = !BuildConfig.DEBUG
 //            logThreshold = Log.VERBOSE
+//            analyticsHandler = {
+//                FirebaseAnalytics.getInstance(this).logEvent(it.eventName, it.toBundle())
+//            }
 //        }
 
         // With direct methods
@@ -38,5 +45,8 @@ class SampleApp() : Application() {
             .autoTag(true)
             .disableLogs(!BuildConfig.DEBUG)
             .logThreshold(Log.VERBOSE)
+            .analyticsHandler {
+                FirebaseAnalytics.getInstance(this).logEvent(it.eventName, it.toBundle())
+            }
     }
 }

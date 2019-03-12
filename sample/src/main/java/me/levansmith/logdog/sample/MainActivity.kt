@@ -124,8 +124,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
          and will probably yield unexpected results.
          */
         LogDog.hide.e(LogDog.w("This is bad practice, but still possible").toString())
-        LogDog.hide.e(LogDog.force.w("This is bad practice, but still possible").toString())
-        LogDog.e(LogDog.hide.w("This is bad practice, but still possible").toString())
+        LogDog.hide.e(LogDog.force.i("Again, this is bad practice, but still possible").toString())
+        LogDog.e(LogDog.hide.d("Yet again, this is bad practice, but still possible").toString())
     }
 
     override fun onClick(v: View) {

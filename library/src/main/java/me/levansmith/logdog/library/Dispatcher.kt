@@ -18,7 +18,7 @@ import kotlin.math.max
 
 abstract class Dispatcher {
 
-    companion object {
+    internal companion object {
         // For convenience
         internal const val VERBOSE = Log.VERBOSE
         internal const val DEBUG = Log.DEBUG
@@ -39,9 +39,7 @@ abstract class Dispatcher {
     private val counters: MutableMap<String, Long> = mutableMapOf()
     private val timers: MutableMap<String, TimerParams> = mutableMapOf()
 
-    public enum class Alignment { LEFT, RIGHT, CENTER }
-
-    public data class DispatchOptions(
+    protected data class DispatchOptions(
         var logLevel: Int = Log.VERBOSE,
         var willHide: Boolean = false,
         var willForce: Boolean = false,
@@ -55,7 +53,7 @@ abstract class Dispatcher {
         }
     }
 
-    public operator fun DispatchOptions.set(key: String, value: Boolean) {
+    protected operator fun DispatchOptions.set(key: String, value: Boolean) {
         when(key) {
             DispatchOptions.HIDE -> { willHide = value }
             DispatchOptions.FORCE -> { willForce = value }
@@ -63,7 +61,7 @@ abstract class Dispatcher {
         }
     }
 
-    public operator fun DispatchOptions.set(key: String, value: Int) {
+    protected operator fun DispatchOptions.set(key: String, value: Int) {
         when(key) {
             DispatchOptions.LEVEL -> { logLevel = value }
         }
@@ -567,6 +565,13 @@ abstract class Dispatcher {
         }
         result.add("┗${"━".repeat(longest)}┛")
         return result
+    }
+
+    // TODO: Determine standards around tables/spreadsheets for RTL languages to attempt to provide an encompassing solution
+    private fun isRTL(): Boolean {
+        val locale = Locale.getDefault()
+        val directionality = Character.getDirectionality(locale.displayName[0]).toInt()
+        return directionality == CharDirectionality.RIGHT_TO_LEFT.value || directionality == CharDirectionality.RIGHT_TO_LEFT_ARABIC.value
     }
 
 }

@@ -1,5 +1,9 @@
 package me.levansmith.logdog.sample
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -8,8 +12,11 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
 import me.levansmith.logdog.library.AnalyticsEvent
+import me.levansmith.logdog.library.Dispatcher
 import me.levansmith.logdog.library.LogDog
 import me.levansmith.logdog.library.LogDogConfig
+import me.levansmith.logdog.library.android.AndroidLogger
+import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
@@ -17,16 +24,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object {
         val LOG_TAG = LogDog.Tag.create(MainActivity::class.java)
+        const val TIMER_EVERYTHING = "do_everything"
+        const val TIMER_SAMPLE = "sample_timer"
+        const val ACTION_NOTICE_ME_SENPAI = "com.example.broadcast.MY_NOTIFICATION"
+    }
+
+    private val noticeMeSenpai = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val receivedData = intent!!.getSerializableExtra(AndroidLogger.EXTRA_DELEGATE) as Dispatcher.Delegate
+            LogDog.w(intent.getStringExtra("data"))
+            LogDog.i(receivedData.message)
+            LogDog.i(receivedData.tag, receivedData.format ?: "", *receivedData.args.toTypedArray())
+            LogDog.i("This is an okay message", receivedData.error ?: Exception())
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        // Keeping time
-        LogDog.timeStart(LOG_TAG, "sample_timer")
-        Thread.sleep(3000L)
-        LogDog.timeEnd("sample_timer")
+        registerReceiver(noticeMeSenpai, IntentFilter(ACTION_NOTICE_ME_SENPAI))
+        LogDog.timeStart(TIMER_EVERYTHING)
+        thread(name = "timer-sample") {
+            // Keeping time
+            LogDog.timeStart(LOG_TAG, TIMER_SAMPLE)
+            Thread.sleep(3000L)
+            LogDog.showThread.timeEnd(TIMER_SAMPLE)
+        }
 
         // Keeping count
         for (i in 1..10) {
@@ -47,12 +70,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // This is a generic log which defaults to VERBOSE level. Kinda useless IMO
         LogDog.log(LOG_TAG, "This will default to VERBOSE")
         // You can prepend the log level you want to log in
-        LogDog.e.log("This will log an ERROR message")
+        LogDog.e.log(LOG_TAG, "This will log an ERROR message")
         // If you try to configure the logging level, it will use the level mentioned last
-        LogDog.v.d.i.w.e.wtf.d(LOG_TAG, "This will be a DEBUG message, since it takes the highest precedence, being the last")
+        LogDog.v.d.i.w.e.wtf.d(
+            LOG_TAG,
+            "This will be a DEBUG message, since it takes the highest precedence, being the last"
+        )
         LogDog.wtf.w.log(LOG_TAG, "This will be a WARN level message")
         LogDog.e
-        LogDog.log(LOG_TAG, "This will log at a VERBOSE level because the previous line has no effect on the current line")
+        LogDog.log(
+            LOG_TAG,
+            "This will log at a VERBOSE level because the previous line has no effect on the current line"
+        )
 
         /*
          Outputting data
@@ -77,7 +106,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         LogDog.w.json(LOG_TAG, example, POJO.serializer)
 
         // Log an object using XML format
-        LogDog.d.xml(LOG_TAG, "<parent><child>I am a child</child><child with-attribute=\"hey there\">This has content</child></parent>")
+        LogDog.d.xml(
+            LOG_TAG,
+            "<parent><child>I am a child</child><child with-attribute=\"hey there\">This has content</child></parent>"
+        )
 
         /*
          Cool Features
@@ -100,7 +132,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // Force always takes precedence and will always output the log
         LogDog.force.hide.hide.hide.log("I'm sorry Dave, I'm afraid I can't do that.")
 
-        LogDogConfig.logThreshold = Log.ERROR
+        LogDogConfig.logThreshold(Log.ERROR)
+        // Or:
+        // LogDogConfig.logThreshold = LogDogConfig.logProvider!!.map(Log.ERROR)
+        // Or:
+        // LogDogConfig.logThreshold = AndroidLog.ERROR
+
         // All logs below the specified threshold will be hidden
         LogDog.v("This will be hidden")
         LogDog.d("This too")
@@ -112,7 +149,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         LogDog.w.log("These will also be hidden")
         LogDog.e("However, this one will be displayed")
         LogDog.wtf("And this one too")
-        LogDogConfig.logThreshold = Log.VERBOSE
+        LogDogConfig.logThreshold(Log.VERBOSE)
 
         // If you want to auto-send a tag, message and/or arguments to your preferred analytics manager, this option will let you
         LogDog.send.d("This message will send (if possible) the given data to the configured analytics service.")
@@ -126,6 +163,27 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         LogDog.hide.e(LogDog.w("This is bad practice, but still possible").toString())
         LogDog.hide.e(LogDog.force.i("Again, this is bad practice, but still possible").toString())
         LogDog.e(LogDog.hide.d("Yet again, this is bad practice, but still possible").toString())
+
+        /*
+         Android specific cool features
+         */
+        val intent = Intent(ACTION_NOTICE_ME_SENPAI).apply {
+            putExtra("data", "Notice me senpai!")
+        }
+        // Send an Android broadcast
+        LogDog
+            .sendBroadcast
+            .extra<Context>(AndroidLogger.EXTRA_KEY_CONTEXT, this)
+            .extra(AndroidLogger.EXTRA_KEY_INTENT, intent)
+            .log("This will send a broadcast with the data from this log")
+
+        // Show a toast
+        LogDog
+            .showToast
+            .extra<Context>(AndroidLogger.EXTRA_KEY_CONTEXT, this)
+            .log("Your toast is ready!")
+
+        LogDog.timeEnd(TIMER_EVERYTHING)
     }
 
     override fun onClick(v: View) {
@@ -142,6 +200,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 LogDog.d.countReset(LOG_TAG, "sample_counter")
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(noticeMeSenpai)
     }
 
     data class POJO(
@@ -182,7 +245,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     data class CountButtonClickEvent(val count: Long) : AnalyticsEvent("increment_counter") {
 
-        override fun getFields() = mutableMapOf<String,String>().apply {
+        override fun getFields() = mutableMapOf<String, String>().apply {
             put("count", count.toString())
         }
     }

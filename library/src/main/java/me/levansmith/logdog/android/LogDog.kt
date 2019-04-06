@@ -23,7 +23,7 @@ public object LogDog : AndroidLogger(), AndroidOptions<LogDog.OptionOwner> {
 
     // Create new modifiers
     override fun withModifiers(level: LogProvider.Level?): AndroidModifiers {
-        return AndroidModifiers()
+        return AndroidModifiers().apply { logLevel = level ?: AndroidLogProvider.VERBOSE }
     }
 
 

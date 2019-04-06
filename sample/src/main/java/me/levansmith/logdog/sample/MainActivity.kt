@@ -14,7 +14,7 @@ import com.google.gson.JsonSerializer
 import me.levansmith.logdog.android.AndroidLogger
 import me.levansmith.logdog.android.LogDog
 import me.levansmith.logging.AnalyticsEvent
-import me.levansmith.logging.Dispatcher
+import me.levansmith.logging.dispatch.Dispatcher
 import me.levansmith.logging.LogDogConfig
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue

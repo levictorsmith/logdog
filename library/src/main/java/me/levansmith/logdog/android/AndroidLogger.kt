@@ -5,7 +5,7 @@ import android.content.Intent
 import android.widget.Toast
 import me.levansmith.logging.AnalyticsEvent
 import me.levansmith.logging.DispatchLogger
-import me.levansmith.logging.Dispatcher
+import me.levansmith.logging.dispatch.Dispatcher
 
 abstract class AndroidLogger : DispatchLogger<AndroidModifiers>(AndroidLogProvider()) {
 

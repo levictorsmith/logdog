@@ -2,6 +2,7 @@ package me.levansmith.logging
 
 import com.google.gson.*
 import kotlinx.coroutines.*
+import me.levansmith.logging.dispatch.Dispatcher
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.StringWriter
@@ -13,9 +14,9 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 import kotlin.math.max
-import me.levansmith.logging.Dispatcher.*
+import me.levansmith.logging.dispatch.Modifiers
 
-abstract class DispatchLogger<M : Modifiers>(private val logProvider: LogProvider) : Dispatcher<M> {
+abstract class DispatchLogger<M : Modifiers>(private val logProvider: LogProvider) : Dispatcher<M>() {
 
     internal companion object {
 
@@ -30,7 +31,7 @@ abstract class DispatchLogger<M : Modifiers>(private val logProvider: LogProvide
 
     }
 
-    abstract val className: String
+    protected abstract val className: String
 
     private data class TimerParams(
         val tag: String,

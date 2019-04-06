@@ -1,8 +1,8 @@
 package me.levansmith.logdog.android
 
-import me.levansmith.logging.Dispatcher
+import me.levansmith.logging.dispatch.Modifiers
 
 data class AndroidModifiers(
     var showToast: Boolean = false,
     var sendBroadcast: Boolean = false
-) : Dispatcher.Modifiers(AndroidLogProvider.VERBOSE)
+) : Modifiers(AndroidLogProvider.VERBOSE)

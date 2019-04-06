@@ -1,7 +1,10 @@
 package me.levansmith.logging
 
+import me.levansmith.logging.dispatch.Dispatcher
+import me.levansmith.logging.dispatch.Modifiers
 
-interface Option<M : Dispatcher.Modifiers, out L : Dispatcher<M>> {
+
+interface Option<M : Modifiers, out L : Dispatcher<M>> {
     var modifiers: M?
     fun newOptions(with: M.() -> Unit): L
     fun getLogger(): L

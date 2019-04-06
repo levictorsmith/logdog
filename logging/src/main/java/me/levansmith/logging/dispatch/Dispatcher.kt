@@ -1,17 +1,11 @@
-package me.levansmith.logging
+package me.levansmith.logging.dispatch
 
+import me.levansmith.logging.AnalyticsEvent
+import me.levansmith.logging.LogProvider
 import java.io.Serializable
 import java.util.Collections.emptyList
 
-interface Dispatcher<M : Dispatcher.Modifiers> {
-    open class Modifiers(
-        var logLevel: LogProvider.Level?,
-        var willForce: Boolean = false,
-        var willHide: Boolean = false,
-        var willSend: Boolean = false,
-        var showThreadInfo: Boolean = false,
-        val extras: MutableMap<String, Any> = mutableMapOf()
-    )
+abstract class Dispatcher<M : Modifiers> {
 
     data class Delegate(
         var tag: String,
@@ -22,15 +16,15 @@ interface Dispatcher<M : Dispatcher.Modifiers> {
         var args: List<Any> = emptyList()
     ) : Serializable
 
-    fun withModifiers(level: LogProvider.Level?): M?
+    abstract fun withModifiers(level: LogProvider.Level?): M?
 
-    fun shouldDispatch(modifiers: M, delegate: Delegate): Boolean
+    abstract fun shouldDispatch(modifiers: M, delegate: Delegate): Boolean
 
-    fun preDispatch(modifiers: M, delegate: Delegate)
+    abstract fun preDispatch(modifiers: M, delegate: Delegate)
 
-    fun doDispatch(modifiers: M, delegate: Delegate): Int
+    abstract fun doDispatch(modifiers: M, delegate: Delegate): Int
 
-    fun postDispatch(modifiers: M, delegate: Delegate)
+    abstract fun postDispatch(modifiers: M, delegate: Delegate)
 
     fun dispatch(level: LogProvider.Level?, delegate: Delegate): Int {
         val modifiers = withModifiers(level)

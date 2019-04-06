@@ -1,6 +1,6 @@
 package me.levansmith.logdog.android
 
-import me.levansmith.logging.Dispatcher
+import me.levansmith.logging.dispatch.Dispatcher
 import me.levansmith.logging.Option
 
 interface AndroidOptions<out L : Dispatcher<AndroidModifiers>> : Option<AndroidModifiers, L> {

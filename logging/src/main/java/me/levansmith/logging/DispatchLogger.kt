@@ -13,8 +13,9 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 import kotlin.math.max
+import me.levansmith.logging.Dispatcher.*
 
-abstract class DispatchLogger(private val logProvider: LogProvider) : Dispatcher<Dispatcher.Modifiers>() {
+abstract class DispatchLogger<M : Modifiers>(private val logProvider: LogProvider) : Dispatcher<M> {
 
     internal companion object {
 
@@ -28,6 +29,8 @@ abstract class DispatchLogger(private val logProvider: LogProvider) : Dispatcher
         private val timers: MutableMap<String, TimerParams> = mutableMapOf()
 
     }
+
+    abstract val className: String
 
     private data class TimerParams(
         val tag: String,
@@ -179,24 +182,24 @@ abstract class DispatchLogger(private val logProvider: LogProvider) : Dispatcher
         xml("", xml)
     }
 
-    override fun shouldDispatch(modifiers: Modifiers, delegate: Delegate): Boolean {
+    override fun shouldDispatch(modifiers: M, delegate: Delegate): Boolean {
         if (modifiers.willForce) return true
         // Determine whether to hide
         // TODO: Request a default value for loglevel?
         return !(LogDogConfig.disableLogs || modifiers.willHide || modifiers.logLevel!! < (LogDogConfig.logThreshold ?: logProvider.min))
     }
 
-    override fun preDispatch(modifiers: Modifiers, delegate: Delegate) {
+    override fun preDispatch(modifiers: M, delegate: Delegate) {
         if (modifiers.willSend) {
             sendEvent(delegate.tag, delegate.message, delegate.error, delegate.event)
         }
     }
 
-    override fun doDispatch(modifiers: Modifiers, delegate: Delegate): Int {
+    override fun doDispatch(modifiers: M, delegate: Delegate): Int {
         return logProvider.logByLevel(modifiers.logLevel, getTag(delegate.tag), decorateMessage(modifiers, delegate), delegate.error)
     }
 
-    override fun postDispatch(modifiers: Modifiers, delegate: Delegate) {
+    override fun postDispatch(modifiers: M, delegate: Delegate) {
         // Do nothing for now
     }
 
@@ -219,7 +222,7 @@ abstract class DispatchLogger(private val logProvider: LogProvider) : Dispatcher
         val className = DispatchLogger::class.java.name
         // Only take the first 15 entries to save on time. We know the last call to anything logdog won't be more than 15 calls out
         val trace = Thread.currentThread().stackTrace.take(15)
-        val index = trace.indexOfLast { it.className.contains(className) } + 1
+        val index = trace.indexOfLast { it.className.contains(className) || it.className.contains(this.className) } + 1
         return Thread.currentThread().stackTrace[index].className
     }
 

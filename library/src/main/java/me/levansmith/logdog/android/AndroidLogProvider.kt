@@ -1,9 +1,9 @@
-package me.levansmith.logdog.library.android
+package me.levansmith.logdog.android
 
 import android.util.Log
-import me.levansmith.logdog.library.LogProvider
+import me.levansmith.logging.LogProvider
 
-class AndroidLog : LogProvider {
+class AndroidLogProvider : LogProvider {
 
     override val min: LogProvider.Level = VERBOSE
     override val max: LogProvider.Level = ASSERT

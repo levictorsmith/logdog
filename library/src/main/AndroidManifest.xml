@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="me.levansmith.logdog.library"/>
+<manifest package="me.levansmith.logdog"/>

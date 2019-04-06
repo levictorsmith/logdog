@@ -12,7 +12,7 @@ object LogDogConfig {
     var logThreshold: LogProvider.Level? = null
         set(value) {
             if (value != null) {
-                field = if (value >= logProvider!!.min && value <= logProvider!!.max) value else throw IllegalArgumentException("Inappropriate log level")
+                field = if (value >= logProvider!!.min && value <= logProvider!!.max) value else throw LogLevelException()
             }
         }
     var analyticsHandler: (event: AnalyticsEvent) -> Unit = {}

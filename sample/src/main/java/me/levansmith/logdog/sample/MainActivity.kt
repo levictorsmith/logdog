@@ -11,11 +11,11 @@ import android.view.View
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
-import me.levansmith.logdog.library.AnalyticsEvent
-import me.levansmith.logdog.library.Dispatcher
-import me.levansmith.logdog.library.LogDog
-import me.levansmith.logdog.library.LogDogConfig
-import me.levansmith.logdog.library.android.AndroidLogger
+import me.levansmith.logdog.android.AndroidLogger
+import me.levansmith.logdog.android.LogDog
+import me.levansmith.logging.AnalyticsEvent
+import me.levansmith.logging.Dispatcher
+import me.levansmith.logging.LogDogConfig
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.random.Random
@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // Or:
         // LogDogConfig.logThreshold = LogDogConfig.logProvider!!.map(Log.ERROR)
         // Or:
-        // LogDogConfig.logThreshold = AndroidLog.ERROR
+        // LogDogConfig.logThreshold = AndroidLogProvider.ERROR
 
         // All logs below the specified threshold will be hidden
         LogDog.v("This will be hidden")

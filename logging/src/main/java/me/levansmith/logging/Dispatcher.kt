@@ -3,7 +3,7 @@ package me.levansmith.logging
 import java.io.Serializable
 import java.util.Collections.emptyList
 
-abstract class Dispatcher<M : Dispatcher.Modifiers> {
+interface Dispatcher<M : Dispatcher.Modifiers> {
     open class Modifiers(
         var logLevel: LogProvider.Level?,
         var willForce: Boolean = false,
@@ -22,19 +22,19 @@ abstract class Dispatcher<M : Dispatcher.Modifiers> {
         var args: List<Any> = emptyList()
     ) : Serializable
 
-    abstract fun withModifiers(level: LogProvider.Level?): M
+    fun withModifiers(level: LogProvider.Level?): M?
 
-    abstract fun shouldDispatch(modifiers: M, delegate: Delegate): Boolean
+    fun shouldDispatch(modifiers: M, delegate: Delegate): Boolean
 
-    abstract fun preDispatch(modifiers: M, delegate: Delegate)
+    fun preDispatch(modifiers: M, delegate: Delegate)
 
-    abstract fun doDispatch(modifiers: M, delegate: Delegate): Int
+    fun doDispatch(modifiers: M, delegate: Delegate): Int
 
-    abstract fun postDispatch(modifiers: M, delegate: Delegate)
+    fun postDispatch(modifiers: M, delegate: Delegate)
 
-    protected fun dispatch(level: LogProvider.Level?, delegate: Delegate): Int {
+    fun dispatch(level: LogProvider.Level?, delegate: Delegate): Int {
         val modifiers = withModifiers(level)
-        if (!shouldDispatch(modifiers, delegate)) return 0
+        if (!shouldDispatch(modifiers!!, delegate)) return 0
         preDispatch(modifiers, delegate)
         val result = doDispatch(modifiers, delegate)
         postDispatch(modifiers, delegate)

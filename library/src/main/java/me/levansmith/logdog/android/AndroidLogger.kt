@@ -1,24 +1,27 @@
-package me.levansmith.logdog.library.android
+package me.levansmith.logdog.android
 
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import me.levansmith.logdog.library.AnalyticsEvent
-import me.levansmith.logdog.library.DispatchLogger
+import me.levansmith.logging.AnalyticsEvent
+import me.levansmith.logging.DispatchLogger
+import me.levansmith.logging.Dispatcher
 
-abstract class AndroidLogger : DispatchLogger(AndroidLog()) {
+abstract class AndroidLogger : DispatchLogger<AndroidModifiers>(AndroidLogProvider()) {
+
+    override val className: String = AndroidLogger::class.java.name
 
     companion object {
         // For convenience
-        private val VERBOSE = AndroidLog.VERBOSE
-        private val DEBUG = AndroidLog.DEBUG
-        private val INFO = AndroidLog.INFO
-        private val WARN = AndroidLog.WARN
-        private val ERROR = AndroidLog.ERROR
-        private val ASSERT = AndroidLog.ASSERT
-        public const val EXTRA_KEY_CONTEXT = "me.levansmith.logdog.library.android.AndroidLogger.EXTRA_KEY_CONTEXT"
-        public const val EXTRA_KEY_INTENT = "me.levansmith.logdog.library.android.AndroidLogger.EXTRA_KEY_INTENT"
-        public const val EXTRA_DELEGATE = "me.levansmith.logdog.library.android.AndroidLogger.EXTRA_DELEGATE"
+        private val VERBOSE = AndroidLogProvider.VERBOSE
+        private val DEBUG = AndroidLogProvider.DEBUG
+        private val INFO = AndroidLogProvider.INFO
+        private val WARN = AndroidLogProvider.WARN
+        private val ERROR = AndroidLogProvider.ERROR
+        private val ASSERT = AndroidLogProvider.ASSERT
+        public const val EXTRA_KEY_CONTEXT = "me.levansmith.logdog.android.AndroidLogger.EXTRA_KEY_CONTEXT"
+        public const val EXTRA_KEY_INTENT = "me.levansmith.logdog.android.AndroidLogger.EXTRA_KEY_INTENT"
+        public const val EXTRA_DELEGATE = "me.levansmith.logdog.android.AndroidLogger.EXTRA_DELEGATE"
     }
 
     // Verbose
@@ -93,21 +96,20 @@ abstract class AndroidLogger : DispatchLogger(AndroidLog()) {
     public fun wtf(tag: String, event: AnalyticsEvent): Int = logByLevel(ASSERT, tag, event)
     public fun wtf(event: AnalyticsEvent): Int = logByLevel(ASSERT, event)
 
-    override fun preDispatch(modifiers: Modifiers, delegate: Delegate) {
+    override fun preDispatch(modifiers: AndroidModifiers, delegate: Dispatcher.Delegate) {
         super.preDispatch(modifiers, delegate)
-        val androidModifiers = (modifiers as AndroidModifiers)
-        if (androidModifiers.sendBroadcast) {
+        if (modifiers.sendBroadcast) {
             try {
-                val context = androidModifiers.extras[EXTRA_KEY_CONTEXT] as Context?
-                val intent = androidModifiers.extras[EXTRA_KEY_INTENT] as Intent?
+                val context = modifiers.extras[EXTRA_KEY_CONTEXT] as Context?
+                val intent = modifiers.extras[EXTRA_KEY_INTENT] as Intent?
                 sendBroadcast(context!!, intent!!, delegate)
             } catch (e: Exception) {
                 throw IllegalArgumentException("No Context or Intent provided. Add the context and intent as an extra to the Log call.")
             }
         }
-        if (androidModifiers.showToast) {
+        if (modifiers.showToast) {
             try {
-                val context = androidModifiers.extras[EXTRA_KEY_CONTEXT] as Context?
+                val context = modifiers.extras[EXTRA_KEY_CONTEXT] as Context?
                 showToast(context!!, delegate)
             } catch (e: Exception) {
                 throw IllegalArgumentException("No Context provided. Add the context as an extra to the Log call.")
@@ -115,12 +117,12 @@ abstract class AndroidLogger : DispatchLogger(AndroidLog()) {
         }
     }
 
-    private fun sendBroadcast(context: Context, intent: Intent, delegate: Delegate) {
+    private fun sendBroadcast(context: Context, intent: Intent, delegate: Dispatcher.Delegate) {
         intent.putExtra(EXTRA_DELEGATE, delegate)
         context.sendBroadcast(intent)
     }
 
-    private fun showToast(context: Context, delegate: Delegate) {
+    private fun showToast(context: Context, delegate: Dispatcher.Delegate) {
         Toast.makeText(context, delegate.message, Toast.LENGTH_LONG).show()
     }
 }

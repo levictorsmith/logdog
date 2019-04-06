@@ -4,8 +4,8 @@ import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
-import me.levansmith.logdog.library.android.AndroidLog
-import me.levansmith.logdog.library.LogDogConfig
+import me.levansmith.logdog.android.AndroidLogProvider
+import me.levansmith.logging.LogDogConfig
 
 class SampleApp() : Application() {
     override fun onCreate() {
@@ -13,7 +13,7 @@ class SampleApp() : Application() {
         // Whether you modify the config singleton directly or through methods or the apply method, any way will work
 
         // Directly
-//        LogDogConfig.logProvider = AndroidLog()
+//        LogDogConfig.logProvider = AndroidLogProvider()
 //        LogDogConfig.tag = "CUSTOM_GLOBAL_TAG"
 //        LogDogConfig.boxPadding = 2
 //        LogDogConfig.indentation = 2
@@ -26,7 +26,7 @@ class SampleApp() : Application() {
 
         // With apply
 //        LogDogConfig.apply {
-//            logProvider = AndroidLog()
+//            logProvider = AndroidLogProvider()
 //            tag = "CUSTOM_GLOBAL_TAG"
 //            boxPadding = 2
 //            indentation = 2
@@ -40,7 +40,7 @@ class SampleApp() : Application() {
 
         // With direct methods
         LogDogConfig
-            .logProvider(AndroidLog())
+            .logProvider(AndroidLogProvider())
             .tag("CUSTOM_GLOBAL_TAG")
             .boxPadding(2)
             .indentation(2)

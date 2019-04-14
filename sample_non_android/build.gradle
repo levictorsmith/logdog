@@ -4,7 +4,7 @@ apply plugin: 'kotlin'
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation project(':logging')
+    implementation "me.levansmith.logdog:logging:$VERSION_NAME"
 }
 
 sourceCompatibility = "7"

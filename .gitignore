@@ -6,6 +6,7 @@ local.properties
 /build
 /captures
 .externalNativeBuild
+build/
 
 target/
 pom.xml.tag

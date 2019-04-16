@@ -1,0 +1,103 @@
+#!/bin/sh
+
+#############################################
+# Increment version in properties and commit
+#############################################
+FILE_PROPERTIES="./gradle.properties"
+FILE_README="./README.md"
+PROPERTY_VERSION_NAME="VERSION_NAME"
+PROPERTY_VERSION_CODE="VERSION_CODE"
+
+getProperty() {
+    awk -F= -v key="$1" '$1==key {print $2}' "$FILE_PROPERTIES"
+}
+setProperty() {
+    awk -v pat="^$1=" -v value="$1=$2" '{ if ($0 ~ pat) print value; else print $0; }' $3 > $3.tmp
+    mv $3.tmp $3
+}
+
+incrementSemver() {
+    IFS='.' read -a version_parts <<< "$1"
+
+    major=${version_parts[0]}
+    minor=${version_parts[1]}
+    patch=${version_parts[2]}
+
+    case $2 in
+        major)
+                major=$((major + 1))
+                minor=0
+                patch=0
+                ;;
+        minor)
+                minor=$((minor + 1))
+                patch=0
+                ;;
+        patch)
+                patch=$((patch + 1))
+                ;;
+        *)
+                echo "Something went wrong..."
+                exit 1
+                ;;
+    esac
+    echo "$major.$minor.$patch"
+}
+
+incrementCode() {
+    echo $(($1 + 1))
+}
+
+updateReadme() {
+    awk -v new="$1" -v old=$(getProperty "$PROPERTY_VERSION_NAME") '{ gsub(old, new); print; }' $FILE_README > $FILE_README.tmp
+    mv $FILE_README.tmp $FILE_README
+}
+
+release() {
+    gradle uploadArchives
+}
+
+incrementVersion() {
+    # Increment version name and code
+    newVersionName=`incrementSemver $(getProperty "$PROPERTY_VERSION_NAME") "$1"`
+    newVersionCode=`incrementCode $(getProperty "$PROPERTY_VERSION_CODE")`
+    # Change in README
+    echo "Updating README..."
+    updateReadme $newVersionName
+
+    echo "Updating properties..."
+    setProperty "$PROPERTY_VERSION_NAME" "$newVersionName" "$FILE_PROPERTIES"
+    setProperty "$PROPERTY_VERSION_CODE" "$newVersionCode" "$FILE_PROPERTIES"
+
+    # Add and commit
+    echo "Committing..."
+    git add $FILE_PROPERTIES $FILE_README
+    git commit -m "Inc v$newVersionName" -- $FILE_PROPERTIES $FILE_README
+    
+    echo "Successfully incremented version"
+
+    # Release, if desired
+    printf "Do you want to release now? [Y,n] "
+    option=""
+    read option
+    if [[ $option = "n" ]]
+        then
+            echo "Exiting..."
+            exit
+    fi
+    release
+}
+
+option=""
+
+printf "Enter upgrade type [major, minor, patch]: "
+read option
+case $option in
+    major | minor | patch)
+            incrementVersion $option
+            ;;
+    *)
+            echo "Invalid option"
+            exit 1
+            ;;
+esac

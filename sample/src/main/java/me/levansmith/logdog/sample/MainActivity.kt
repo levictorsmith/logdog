@@ -93,10 +93,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             listOf(it.foo, it.bar.toString(), it.baz.toString(), it.qux.toString())
         }
 
-        // Just one column without indexes
-        LogDog.e.table(LOG_TAG, data.map { it.foo }, listOf("Foo"), false) {
-            listOf(it)
-        }
+        // Just one column without indexes and without interpreter
+        LogDog.e.table(LOG_TAG, data.map { it.foo }, listOf("Foo"), false)
 
         // Log an object using JSON format
         LogDog.d.json(LOG_TAG, "{\"foo\":\"blah\",\"bar\":123, \"baz\":[1,2,3,4,5,6,7]}")

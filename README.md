@@ -16,14 +16,14 @@ TODO: Add description and supported features
 
 #### Gradle
 
-`implementation 'me.levansmith.logdog:logdog:0.2.1'`
+`implementation 'me.levansmith.logdog:logdog:0.2.2'`
 
 #### Maven
 ```
 <dependency>
     <groupId>me.levansmith.logdog</groupId>
     <artifactId>logdog</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
 </dependency>
 ```
 

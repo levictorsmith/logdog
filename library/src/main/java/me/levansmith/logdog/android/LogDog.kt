@@ -1,49 +1,33 @@
 package me.levansmith.logdog.android
 
-import me.levansmith.logging.LogProvider
 
+/**
+ * An intuitive Android logger with convenient functionality.
+ */
+class LogDog private constructor(with: AndroidModifiers.() -> Unit = {}) : AndroidLogger<LogDog>() {
 
-public object LogDog : AndroidLogger(), AndroidOptions<LogDog.OptionOwner> {
+    /**
+     * Static-like options/methods devoid of any modifiers.
+     * Any added modifiers will create a new LogDog with those modifiers.
+     */
+    companion object : AndroidLogger<LogDog>() {
 
-    /** Helper class for creating log tags easily */
-    public object Tag {
-        /** Create a simple, compact String representation of the given class */
-        public fun create(c: Class<*>): String = c.simpleName
+        // The companion never has modifiers of its own
+        override val modifiers: AndroidModifiers? = null
+
+        // Create new modifiers
+        override fun defaultModifiers() = AndroidModifiers()
+
+        // Create a new logger to use
+        override fun withLogger(with: AndroidModifiers.() -> Unit) = LogDog(with)
     }
 
-    // Transfer ownership to the OptionOwner
-    override fun newOptions(with: AndroidModifiers.() -> Unit) = OptionOwner(with)
+    // Carry over the existing options
+    override val modifiers: AndroidModifiers? = AndroidModifiers().apply(with)
 
-    // It is mandatory that this be null within the parent context.
-    // When the modifiers are null, it will force a new creation of modifiers
-    override var modifiers: AndroidModifiers? = null
+    // Not used if logger already exists
+    override fun defaultModifiers() = AndroidModifiers()
 
-    // Transfer ownership to the OptionOwner
-    override fun getLogger() = OptionOwner()
-
-    // Create new modifiers
-    override fun withModifiers(level: LogProvider.Level?): AndroidModifiers {
-        return AndroidModifiers().apply { logLevel = level ?: AndroidLogProvider.VERBOSE }
-    }
-
-
-    /** Restricts options' scope to a singular outcome/invocation without leaking to other invocations on the same line. */
-    public class OptionOwner internal constructor(with: AndroidModifiers.() -> Unit = {}) : AndroidLogger(), AndroidOptions<OptionOwner> {
-
-        // It is mandatory that this be initialized within the OptionOwner
-        override var modifiers: AndroidModifiers? = AndroidModifiers().apply(with)
-
-        // The OptionOwner is always the source of truth
-        override fun getLogger() = this
-
-        // Shouldn't have to be used since we can't transfer ownership from here, so just return this
-        override fun newOptions(with: AndroidModifiers.() -> Unit) = this
-
-        // Important! As opposed to the parent level, the modifiers within the OptionOwner should be used
-        override fun withModifiers(level: LogProvider.Level?): AndroidModifiers? {
-            if (level == null) return modifiers
-            return modifiers.apply { this!!.logLevel = level }
-        }
-    }
+    // Use the existing logger so we can modify the existing modifiers
+    override fun withLogger(with: AndroidModifiers.() -> Unit) = apply { with(modifiers!!) }
 }
-

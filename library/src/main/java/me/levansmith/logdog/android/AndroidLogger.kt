@@ -7,9 +7,8 @@ import me.levansmith.logging.AnalyticsEvent
 import me.levansmith.logging.DispatchLogger
 import me.levansmith.logging.dispatch.Dispatcher
 
-abstract class AndroidLogger : DispatchLogger<AndroidModifiers>(AndroidLogProvider()) {
-
-    override val className: String = AndroidLogger::class.java.name
+abstract class AndroidLogger<out L : Dispatcher<AndroidModifiers>>
+    : DispatchLogger<AndroidModifiers>(AndroidLogProvider()), AndroidOptions<L> {
 
     companion object {
         // For convenience
@@ -23,6 +22,9 @@ abstract class AndroidLogger : DispatchLogger<AndroidModifiers>(AndroidLogProvid
         public const val EXTRA_KEY_INTENT = "me.levansmith.logdog.android.AndroidLogger.EXTRA_KEY_INTENT"
         public const val EXTRA_DELEGATE = "me.levansmith.logdog.android.AndroidLogger.EXTRA_DELEGATE"
     }
+
+    override val className: String = AndroidLogger::class.java.name
+    override val defaultLevel = VERBOSE
 
     // Verbose
     public fun v(tag: String, msg: String) = logByLevel(VERBOSE, tag, msg)
@@ -102,7 +104,7 @@ abstract class AndroidLogger : DispatchLogger<AndroidModifiers>(AndroidLogProvid
             try {
                 val context = modifiers.extras[EXTRA_KEY_CONTEXT] as Context?
                 val intent = modifiers.extras[EXTRA_KEY_INTENT] as Intent?
-                sendBroadcast(context!!, intent!!, delegate)
+                _sendBroadcast(context!!, intent!!, delegate)
             } catch (e: Exception) {
                 throw IllegalArgumentException("No Context or Intent provided. Add the context and intent as an extra to the Log call.")
             }
@@ -110,19 +112,19 @@ abstract class AndroidLogger : DispatchLogger<AndroidModifiers>(AndroidLogProvid
         if (modifiers.showToast) {
             try {
                 val context = modifiers.extras[EXTRA_KEY_CONTEXT] as Context?
-                showToast(context!!, delegate)
+                _showToast(context!!, delegate)
             } catch (e: Exception) {
                 throw IllegalArgumentException("No Context provided. Add the context as an extra to the Log call.")
             }
         }
     }
 
-    private fun sendBroadcast(context: Context, intent: Intent, delegate: Dispatcher.Delegate) {
+    private fun _sendBroadcast(context: Context, intent: Intent, delegate: Dispatcher.Delegate) {
         intent.putExtra(EXTRA_DELEGATE, delegate)
         context.sendBroadcast(intent)
     }
 
-    private fun showToast(context: Context, delegate: Dispatcher.Delegate) {
+    private fun _showToast(context: Context, delegate: Dispatcher.Delegate) {
         Toast.makeText(context, delegate.message, Toast.LENGTH_LONG).show()
     }
 }

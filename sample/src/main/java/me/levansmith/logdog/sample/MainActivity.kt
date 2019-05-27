@@ -16,6 +16,7 @@ import me.levansmith.logdog.android.LogDog
 import me.levansmith.logging.AnalyticsEvent
 import me.levansmith.logging.dispatch.Dispatcher
 import me.levansmith.logging.LogDogConfig
+import me.levansmith.logging.logTag
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.random.Random
@@ -23,10 +24,18 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object {
-        val LOG_TAG = LogDog.Tag.create(MainActivity::class.java)
+        val LOG_TAG = MainActivity::class.java.logTag()
         const val TIMER_EVERYTHING = "do_everything"
         const val TIMER_SAMPLE = "sample_timer"
         const val ACTION_NOTICE_ME_SENPAI = "com.example.broadcast.MY_NOTIFICATION"
+        @JvmStatic
+        val data = (1..101).map {
+            POJO(
+                Random.nextBytes(Random.nextInt(20)).map { ((it % 94).absoluteValue + 33).toByte() }.toByteArray().toString(
+                    Charsets.US_ASCII
+                ), Random.nextInt(), Random.nextInt(), Random.nextFloat()
+            )
+        }
     }
 
     private val noticeMeSenpai = object : BroadcastReceiver() {
@@ -88,8 +97,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
          */
 
         // Output a table of data, given the "interpreter" for what goes in which column
-        val data = createObjects()
-        LogDog.table(LOG_TAG, data, listOf("Foo", "Bar", "Baz", "Quuuuuuuuuuuuuuuuuuuux")) {
+        LogDog.table(data, listOf("Foo", "Bar", "Baz", "Quuuuuuuuuuuuuuuuuuuux")) {
             listOf(it.foo, it.bar.toString(), it.baz.toString(), it.qux.toString())
         }
 
@@ -170,15 +178,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
         // Send an Android broadcast
         LogDog
-            .sendBroadcast
-            .extra<Context>(AndroidLogger.EXTRA_KEY_CONTEXT, this)
-            .extra(AndroidLogger.EXTRA_KEY_INTENT, intent)
+            .sendBroadcast(this, intent)
             .log("This will send a broadcast with the data from this log")
 
         // Show a toast
         LogDog
-            .showToast
-            .extra<Context>(AndroidLogger.EXTRA_KEY_CONTEXT, this)
+            .showToast(this)
             .log("Your toast is ready!")
 
         LogDog.timeEnd(TIMER_EVERYTHING)
@@ -246,14 +251,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         override fun getFields() = mutableMapOf<String, String>().apply {
             put("count", count.toString())
         }
-    }
-
-    private fun createObjects(): List<POJO> = (1..101).map {
-        POJO(
-            Random.nextBytes(Random.nextInt(20)).map { ((it % 94).absoluteValue + 33).toByte() }.toByteArray().toString(
-                Charsets.US_ASCII
-            ), Random.nextInt(), Random.nextInt(), Random.nextFloat()
-        )
     }
 
 }
